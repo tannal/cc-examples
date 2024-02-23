@@ -32,14 +32,29 @@ int GuiSliderBar(Rectangle bounds, int value, int minValue, int maxValue) {
     return value; // Return the value
 }
 
+// Custom BeginMode2D function for zooming
+void BeginMode2D(Vector2 target, float rotation, float zoom) {
+    // No implementation needed for Raylib
+}
+
+// Custom Translate function
+void Translatef(float x, float y, float z) {
+    // No implementation needed for Raylib
+}
+
+// Custom Scale function
+void Scalef(float x, float y, float z) {
+    // No implementation needed for Raylib
+}
+
 // Draw the Sierpinski Triangle
-void drawSierpinskiTriangle(Rectangle rec, int depth) {
+void drawSierpinskiTriangle(Rectangle rec, int depth, float windowScale) {
     if (depth == 0) {
         // Draw the triangle
         DrawTriangle(
-            {rec.x + rec.width / 2, rec.y},
-            {rec.x, rec.y + rec.height},
-            {rec.x + rec.width, rec.y + rec.height},
+            {rec.x * windowScale + WIDTH / 2, rec.y * windowScale + HEIGHT / 2},
+            {rec.x * windowScale + WIDTH / 2, (rec.y + rec.height) * windowScale + HEIGHT / 2},
+            {(rec.x + rec.width) * windowScale + WIDTH / 2, (rec.y + rec.height) * windowScale + HEIGHT / 2},
             BLACK
         );
     } else {
@@ -49,9 +64,9 @@ void drawSierpinskiTriangle(Rectangle rec, int depth) {
         Rectangle recC = {rec.x + rec.width / 2, rec.y + rec.height / 2, rec.width / 2, rec.height / 2};
         
         // Recursive calls
-        drawSierpinskiTriangle(recA, depth - 1);
-        drawSierpinskiTriangle(recB, depth - 1);
-        drawSierpinskiTriangle(recC, depth - 1);
+        drawSierpinskiTriangle(recA, depth - 1, windowScale);
+        drawSierpinskiTriangle(recB, depth - 1, windowScale);
+        drawSierpinskiTriangle(recC, depth - 1, windowScale);
     }
 }
 
@@ -59,27 +74,29 @@ int main() {
     // Set up the window
     InitWindow(WIDTH, HEIGHT, "Sierpinski Triangle Slider");
 
-    // show fps
-    SetTargetFPS(60);
-
-    // Depth slider
+    // Depth slider and window scale
     int depth = 0;
+    float windowScale = 1.0f;
 
     // Main loop
     while (!WindowShouldClose()) {
         // Update
-        depth = GuiSliderBar((Rectangle){10, 10, 200, 20}, depth, 0, MAX_DEPTH);
+        int sliderValue = GuiSliderBar((Rectangle){10, 10, 200, 20}, depth, 0, MAX_DEPTH);
+        
+        // Zoom in when slider moves right, zoom out when slider moves left
+        windowScale = 1.0f + (sliderValue - depth) * 0.1f;
+        depth = sliderValue;
 
         // Draw
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
         // Define the initial triangle
-        Rectangle initialRec = {200, 100, 400, 400};
+        Rectangle initialRec = {-200, -200, 400, 400};
 
         // Draw the Sierpinski Triangle
-        drawSierpinskiTriangle(initialRec, depth);
-
+        drawSierpinskiTriangle(initialRec, depth, windowScale);
+        
         EndDrawing();
     }
 
